@@ -1,0 +1,59 @@
+====== INEAUTO YOD1800 (CPE-AX1800 V3.0) ======
+
+**Draft for review.** The observations below apply to one retail YOD1800 with PCB marking ''CPE-AX1800 V3.0''. Other revisions have not been tested. The image used was a locally built OpenWrt 25.12.6-derived board image; official support and downloads are not established.
+
+The YOD1800 is an outdoor dual-band wireless access point/repeater based on the MediaTek MT7621 platform. It has two Gigabit Ethernet ports and an MT7915E wireless device.
+
+===== Hardware =====
+
+^ Component ^ Observed on the tested unit ^
+| SoC | MediaTek MT7621AT, dual-core MIPS, 880 MHz |
+| RAM | 128 MiB DDR3 |
+| Flash | 16 MiB SPI NOR (Winbond W25Q128BV or compatible) |
+| Ethernet | Two Gigabit ports; MT7530 switch; one port marked PoE-In/WAN and one LAN |
+| Wireless | MediaTek MT7915E, 2.4 GHz and 5 GHz, 802.11ax |
+| Antennas | Four external antennas |
+| Bootloader | MediaTek U-Boot 2018.09 |
+| Serial | Console observed at 115200 baud, 8 data bits, no parity, 1 stop bit |
+
+{{:media:ineauto:ineauto-yod1800-pcb.jpg?400|YOD1800 PCB and CPE-AX1800 V3.0 marking}}
+
+FIXME: Verify physical Ethernet and LED mapping and power and PoE specifications. Wiki media paths are proposed. Local review copies are in the media directory.
+
+===== Installation (experimental, one unit) =====
+
+This is a record of the tested local build, not an official installation method. The reference checksums identify the exact artifacts tested here. The same file has the same checksums on any computer. For a rebuilt or different file, use the checksums published for that artifact and calculate its exact byte length and CRC32 before transfer. A stock backup was made on the tested unit, but backup and recovery procedures have not been independently tested; a flash write-back procedure has not been verified. The stock flash includes device-specific calibration data and should be kept private.
+
+  - Confirm the PCB revision and retain serial console access. Isolate the device and computer from the home network: the tested image starts a LAN DHCP server.
+  - Verify the local matching initramfs SHA-256 on the computer: ''6885bfb4f81f12b089c7fe26e4fd57f67c1de8d0f840053df0d3e35e0c22debc''. At U-Boot, load it over TFTP to ''0x81000000''. For this exact file, verify CRC32 ''e4ec3a58'' over ''0x71e571'' bytes before ''bootm 0x81000000''. Stop if the values do not match. TFTP initially required targeted ARP replies on the test network; the reason for the initial failure was not established.
+  - In the RAM-booted system, confirm board ID ''ineauto,yod1800'' and the flash map below. Confirm bootloader, environment and factory partitions are read-only and firmware is writable. Copy the matching sysupgrade file to ''/tmp/yod1800-sysupgrade.bin'' and verify its SHA-256 on the device: ''02175a3fd287257ff2ee116269b213fec5547d980f4e4fd5669629d66e7b6d17''.
+  - Run ''sysupgrade -T -n /tmp/yod1800-sysupgrade.bin'' and proceed only on exit status 0. The tested migration used fresh settings; a configuration-preserving test rejected a compatibility version transition.
+  - Run ''sysupgrade -n /tmp/yod1800-sysupgrade.bin''. Keep power connected during erase, write and reboot. After boot, verify the board ID, SquashFS ''/rom'', writable JFFS2 ''/overlay'' and isolated LAN access.
+  - Configure the installed device before connecting to an existing LAN. For access-point use, disable LAN DHCP and IPv6 router advertisements as appropriate for the network; avoid an address conflict with its default management address ''192.168.1.1''.
+
+The tested unit booted from flash, exposed both wireless PHYs and was reachable over isolated Ethernet. A file on the overlay survived a software reboot. A power cycle, client association and data transfer on each wireless band remain to be tested on the installed image. Physical port-to-interface mapping also remains to be confirmed.
+
+===== Flash layout =====
+
+Offsets are hexadecimal; end offsets are exclusive.
+
+^ Partition ^ Start ^ End ^
+| u-boot | 0x000000 | 0x030000 |
+| u-boot-env | 0x030000 | 0x040000 |
+| unassigned | 0x040000 | 0x050000 |
+| factory | 0x050000 | 0x090000 |
+| firmware | 0x090000 | 0x1000000 |
+
+The factory partition contains calibration and device-specific addresses. Preserve it. On the tested installed image, bootloader, environment and factory partitions matched the stock backup after installation.
+
+===== Recovery =====
+
+**Tested recovery entry point:** The labelled UART exposes the U-Boot menu and console. From that console, a known-good initramfs was loaded via TFTP into RAM, checked by CRC32 and started with bootm. This provides a tested way to start a rescue system while U-Boot and its network path remain functional.
+
+**Stock restoration:** The test unit's full V2.6 flash dump was read and verified. Writing it back and booting the restored firmware have not been tested. Keep each unit's dump private because it includes its MAC addresses, environment and radio calibration. INEAUTO separately lists a [[https://ineauto.com/pages/firmware|YOD1800 V1.9 update]]. Downgrade and recovery with that file are unverified on this revision.
+
+===== Serial =====
+
+{{:media:ineauto:ineauto-yod1800-uart.jpg?600|UART labels next to the reset switch}}
+
+The PCB is marked **VCC, RX, TX, GND** from left to right in the close-up. The test unit's owner soldered the pictured pins onto the factory pads. The console was used at **115200 8N1**, with board TX to adapter RX, board RX to adapter TX, and a common ground. Leave VCC disconnected and power the board normally. The signal voltage has not been independently measured.

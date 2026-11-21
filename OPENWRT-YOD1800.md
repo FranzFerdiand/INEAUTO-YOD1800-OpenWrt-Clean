@@ -1,6 +1,6 @@
-# INEAUTO YOD1800 (CPE-AS1800 V3.0) — OpenWrt Documentation
+# INEAUTO YOD1800 (CPE-AX1800 V3.0) — OpenWrt Documentation
 
-Comprehensive documentation for OpenWrt device support and hardware enablement on the INEAUTO YOD1800 outdoor dual-band AX1800 access point / repeater. Observations and verified configurations apply to the retail hardware unit with PCB marking `CPE-AS1800 V3.0`.
+Comprehensive documentation for OpenWrt device support and hardware enablement on the INEAUTO YOD1800 outdoor dual-band AX1800 access point / repeater. Observations and verified configurations apply to the retail hardware unit with PCB marking `CPE-AX1800 V3.0`.
 
 ---
 
@@ -9,7 +9,7 @@ Comprehensive documentation for OpenWrt device support and hardware enablement o
 | Component | Specification | Evidence / Detection |
 | :--- | :--- | :--- |
 | **Model** | INEAUTO YOD1800 Outdoor Dual-Band AX1800 AP / Repeater | Retail unit housing & manufacturer spec sheet |
-| **PCB Marking** | `CPE-AS1800 V3.0` | Silkscreen on internal circuit board |
+| **PCB Marking** | `CPE-AX1800 V3.0` | Silkscreen on internal circuit board |
 | **SoC** | MediaTek MT7621AT (MIPS 1004Kc dual-core, 4 VPEs @ 880 MHz) | Bootloader banner & Linux CPU probe |
 | **RAM** | 128 MiB DDR3 DRAM (MTK MT7621 DDR controller) | U-Boot DRAM probe & Linux `meminfo` |
 | **Storage / Flash** | 16 MiB SPI NOR Flash (Winbond `w25q128bv` / compatible) | SPI bus probe & OEM MTD table |
@@ -17,10 +17,12 @@ Comprehensive documentation for OpenWrt device support and hardware enablement o
 | **Wireless (Wi-Fi 6)** | MediaTek MT7915E (Dual-Band 802.11ax, 2.4 GHz + 5 GHz), PCIe slot 1 | Linux PCIe enumeration & `mt7915e` driver |
 | **Antennas** | 4x external high-gain omnidirectional antennas (2x 2.4 GHz, 2x 5 GHz) | Hardware inspection & RF chain mappings |
 | **Bootloader** | MediaTek U-Boot 2018.09 (build Jan 04 2025), boots legacy uImage | UART serial console output |
-| **Serial Console** | 115200 8N1, 3.3V TTL (accessible on PCB header) | Hardware test capture |
+| **Serial Console** | 115200 8N1, pads labelled VCC / RX / TX / GND. Signal voltage unmeasured | Hardware test capture |
 | **Original Firmware** | OpenWrt 23.05 fork (`r24012-d8dd03c46f`), Linux 5.15.162 | Extracted rootfs `/etc/openwrt_release` |
 
 ---
+
+[PCB overview](review/media/ineauto-yod1800-pcb.jpg) · [UART close-up](review/media/ineauto-yod1800-uart.jpg) · [Wiki device draft](review/YOD1800-device.dokuwiki.txt) · [Wiki Techdata draft](review/YOD1800-techdata.dokuwiki.txt)
 
 ## 2. Flash Partition Layout (16 MiB SPI NOR)
 
@@ -59,7 +61,7 @@ Custom board definitions created for OpenWrt 25.12.6 (`ramips/mt7621`):
   - Uses upstream MediaTek MT7621 SoC definitions and Linux 6.12 binding headers.
   - Corrected PCIe reset controller phandles to resolve reset provider probe issues.
   - Declared read-only flags (`0x800` / `MTD_CAP_ROM`) for all flash partitions during development trials.
-- **Build recipe:** [Source build script](scripts/build_flash_image.sh). It declares the YOD1800 target, the MT7915 firmware dependency and legacy uImage name `C8343R-9999`.
+- **Build recipe:** [Source build script](scripts/build_flash_image.sh). It declares the board target, MT7915 firmware and legacy uImage name `C8343R-9999`.
 
 ---
 
@@ -109,7 +111,7 @@ Booting the verified RAM image via `bootm 81000000` produced these hardware obse
 
 ---
 
-## 6. Permanent installation tested on CPE-AS1800 V3.0
+## 6. Permanent installation tested on CPE-AX1800 V3.0
 
 The native OpenWrt v25.12.6 source build produced a matching initramfs and a 7,667,983-byte squashfs sysupgrade image. The firmware image has legacy uImage name `C8343R-9999` and declares only `ineauto,yod1800` as supported. Build inputs and packaging are in [build_flash_image.sh](scripts/build_flash_image.sh) and [Dockerfile.flash](scripts/Dockerfile.flash).
 
@@ -133,8 +135,8 @@ The prior SPI and PCIe reset failures and the Ethernet deferred probe were absen
 
 ## 7. Stock backup and publication scope
 
-The full 16 MiB V2.6 flash dump was rechecked against local SHA-256. Keep the dump private. It includes the original bootloader, environment and Wi-Fi calibration data. A write-back procedure has not been verified on hardware. The public guide should include the partition map and verification method, and omit raw dumps, packet captures, MAC addresses and credentials.
+The full 16 MiB V2.6 flash dump was rechecked against local SHA-256. Keep the dump private. It includes the original bootloader, environment and Wi-Fi calibration data. Entry into U-Boot over UART and starting a CRC-verified rescue initramfs by TFTP were tested. Stock flash write-back and boot were not tested. [INEAUTO lists a separate YOD1800 V1.9 update](https://ineauto.com/pages/firmware). The public guide should include the partition map and verification method, and omit raw dumps, packet captures, MAC addresses and credentials.
 
 ### DHCP on an existing home LAN
 
-The installed build initially starts dnsmasq and odhcpd on LAN. Disable LAN DHCP and IPv6 router advertisements before connecting it to an existing LAN in access-point mode. On the tested unit, LAN DHCP was set to ignore, DHCPv6, RA and NDP were disabled, and dnsmasq and odhcpd were stopped and disabled at startup. Ports UDP 67 and 547 had no listeners after the change. The unit retained the default static management address 192.168.1.1 during the test.
+The installed build initially starts dnsmasq and odhcpd on LAN. Disable LAN DHCP and IPv6 router advertisements before connecting it to an existing LAN in access-point mode. On the tested unit, LAN DHCP was set to ignore, DHCPv6, RA and NDP were disabled, and dnsmasq and odhcpd were stopped and disabled at startup. Ports UDP 67 and 547 had no listeners after the change. The unit retains its static management address 192.168.1.1.

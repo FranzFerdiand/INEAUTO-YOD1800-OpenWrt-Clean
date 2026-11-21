@@ -1,0 +1,29 @@
+====== Techdata: INEAUTO YOD1800 CPE-AX1800 V3.0 ======
+~~HIDEPAGE~~
+
+Draft for review: one tested PCB revision. Verify the final page namespace, permitted field names and dropdown values in the OpenWrt dataentry form before publishing. No official OpenWrt support or download is established. Unknown values are deliberately omitted.
+
+---- dataentry ----
+Device Type: WiFi Router
+Brand: INEAUTO
+Model: YOD1800
+Version: CPE-AX1800 V3.0
+Bootloader: U-Boot
+CPU: MediaTek MT7621AT
+CPU MHz: 880
+Flash MB: 16
+RAM MB: 128
+Switch: MediaTek MT7530
+Ethernet Gbit ports: 2
+WLAN 2.4GHz: 802.11ax
+WLAN 5.0GHz: 802.11ax
+WLAN Hardware: MediaTek MT7915E
+Serial: Yes
+Serial connection parameters: 115200 / 8N1
+----
+
+FIXME: Confirm whether the PCB marking belongs in the Version field and validate each field name and allowed value against the current form. Verify device type, antenna, power/PoE specifications, physical port mapping and serial signal voltage. Add a device page link only after its destination is agreed. Support release, commit, target and firmware URLs require upstream support and verified published artifacts.
+
+The PCB labels the UART pads VCC, RX, TX and GND. The review copy includes a close-up.
+
+References for the form and field conventions: https://openwrt.org/templates/template_dataentry and https://openwrt.org/meta/template_dataentry_background
