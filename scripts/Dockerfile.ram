@@ -1,0 +1,4 @@
+FROM debian:bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends python3 gcc device-tree-compiler u-boot-tools zstd ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /work
+ENTRYPOINT ["python3", "/work/scripts/build_ram_image.py"]

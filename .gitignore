@@ -1,0 +1,11 @@
+/bin/
+/build/
+__pycache__/
+*.bin
+*.bin.partial
+*.dtb
+*.log
+*.pcap
+*.pcapng
+*.pyc
+*.sha256
